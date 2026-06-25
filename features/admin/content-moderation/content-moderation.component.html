@@ -1,0 +1,145 @@
+<div class="moderation-container">
+  <div class="header-section">
+    <h1>تعدیل و بررسی محتوا</h1>
+    <p class="subtitle">درخواست‌های آپلود و پیشنهادات محتوایی ارسال شده توسط پرسنل را بررسی و تایید یا رد کنید.</p>
+  </div>
+
+  <!-- بخش آمار کوتاه (Stats) -->
+  <div class="stats-row" *ngIf="stats">
+    <div class="stat-box warning">
+      <span class="stat-title">در انتظار بررسی</span>
+      <span class="stat-number">{{ stats.pending }}</span>
+    </div>
+    <div class="stat-box success">
+      <span class="stat-title">تایید شده</span>
+      <span class="stat-number">{{ stats.approved }}</span>
+    </div>
+    <div class="stat-box danger">
+      <span class="stat-title">رد شده</span>
+      <span class="stat-number">{{ stats.rejected }}</span>
+    </div>
+  </div>
+
+  <!-- بخش فیلترها و جستجو -->
+  <div class="filters-card">
+    <div class="filters-grid">
+      <div class="form-group">
+        <label>جستجو</label>
+        <input type="text" [(ngModel)]="searchTerm" placeholder="جستجو در عنوان یا توضیحات..." (keyup.enter)="applyFilters()">
+      </div>
+      <div class="form-group">
+        <label>وضعیت بررسی</label>
+        <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="pending">در انتظار بررسی</option>
+          <option value="approved">تأیید شده</option>
+          <option value="rejected">رد شده</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>نوع رسانه</label>
+        <select [(ngModel)]="mediaTypeFilter" (change)="applyFilters()">
+          <option value="all">همه رسانه‌ها</option>
+          <option *ngFor="let type of mediaTypes" [value]="type.id">{{ type.name }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>شایستگی</label>
+        <select [(ngModel)]="competencyFilter" (change)="applyFilters()">
+          <option value="all">همه شایستگی‌ها</option>
+          <option *ngFor="let comp of competencies" [value]="comp.id">{{ comp.name }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" (click)="applyFilters()">اعمال فیلترها</button>
+      <button class="btn btn-secondary" (click)="resetFilters()">پاکسازی</button>
+    </div>
+  </div>
+
+  <!-- بارگذاری و خطاها -->
+  <div class="loading-state" *ngIf="loading">در حال بارگذاری اطلاعات...</div>
+  <div class="error-state" *ngIf="error">{{ error }}</div>
+
+  <!-- جدول پیشنهادات -->
+  <div class="table-card" *ngIf="!loading && suggestions.length > 0">
+    <div class="table-container">
+      <table class="moderation-table">
+        <thead>
+          <tr>
+            <th>عنوان پیشنهاد</th>
+            <th>ارسال‌کننده</th>
+            <th>شایستگی مرتبط</th>
+            <th>نوع فایل</th>
+            <th>تاریخ ثبت</th>
+            <th>وضعیت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of suggestions">
+            <td class="font-bold">{{ item.title }}</td>
+            <td>{{ item.suggested_by_name }}</td>
+            <td><span class="comp-tag">{{ item.competency_name }}</span></td>
+            <td><span class="media-tag">{{ item.media_type_name }}</span></td>
+            <td>{{ formatDate(item.created_at) }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(item.status)">
+                {{ getStatusLabel(item.status) }}
+              </span>
+            </td>
+            <td class="actions-td">
+              <button class="btn-table-action view" (click)="openReviewModal(item)">بررسی و اقدام</button>
+              <button class="btn-table-action link" *ngIf="item.url" (click)="openUrl(item.url)">مشاهده لینک</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- صفحه‌بندی -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">قبلی</button>
+      <span>صفحه {{ currentPage }} از {{ totalPages }}</span>
+      <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">بعدی</button>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && suggestions.length === 0">
+    هیچ پیشنهادی با فیلترهای انتخاب شده یافت نشد.
+  </div>
+
+  <!-- مودال بررسی دقیق و تایید/رد (Review Modal) -->
+  <div class="modal-backdrop" *ngIf="showModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>بررسی پیشنهاد: {{ selectedSuggestion?.title }}</h3>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
+      <div class="modal-body" *ngIf="selectedSuggestion">
+        <div class="detail-row">
+          <strong>توضیحات فرستنده:</strong>
+          <p>{{ selectedSuggestion.description }}</p>
+        </div>
+        <div class="detail-grid">
+          <div><strong>ارسال کننده:</strong> {{ selectedSuggestion.suggested_by_name }}</div>
+          <div><strong>نوع رسانه:</strong> {{ selectedSuggestion.media_type_name }}</div>
+          <div><strong>شایستگی مربوطه:</strong> {{ selectedSuggestion.competency_name }}</div>
+          <div *ngIf="selectedSuggestion.url">
+            <strong>آدرس وب/منبع:</strong> 
+            <a [href]="selectedSuggestion.url" target="_blank" class="text-link">{{ selectedSuggestion.url }}</a>
+          </div>
+        </div>
+
+        <div class="form-group notes-group">
+          <label for="adminNotes">یادداشت مدیر (الزامی برای رد درخواست):</label>
+          <textarea id="adminNotes" [(ngModel)]="adminNotes" rows="4" placeholder="توضیحات خود را در خصوص تایید یا دلیل رد این محتوا بنویسید..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-success" (click)="approveSuggestion()">✓ تأیید و انتشار</button>
+        <button class="btn btn-danger" (click)="rejectSuggestion()">✕ رد درخواست</button>
+        <button class="btn btn-secondary" (click)="closeModal()">انصراف</button>
+      </div>
+    </div>
+  </div>
+</div>

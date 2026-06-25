@@ -1,0 +1,147 @@
+<!-- src/app/features/competencies/competency-detail/competency-detail.component.html -->
+<div class="competency-detail-container">
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="error" role="alert">
+    <i class="icon-error"></i>
+    <span>{{ error }}</span>
+    <button (click)="closeError()" aria-label="بستن پیام خطا">×</button>
+  </div>
+
+  <!-- Content -->
+  <div class="detail-content" *ngIf="!loading && competency">
+    <!-- Header -->
+    <div class="detail-header">
+      <button 
+        class="btn-back" 
+        (click)="goBack()"
+        aria-label="بازگشت به لیست">
+        <i class="icon-arrow-right"></i>
+        بازگشت
+      </button>
+
+      <div class="header-actions" *ngIf="isAdmin">
+        <button
+          class="btn btn-secondary"
+          (click)="toggleActive()"
+          [attr.aria-label]="competency.isActive ? 'غیرفعال کردن' : 'فعال کردن'">
+          <i [class]="competency.isActive ? 'icon-toggle-on' : 'icon-toggle-off'"></i>
+          {{ competency.isActive ? 'غیرفعال کردن' : 'فعال کردن' }}
+        </button>
+
+        <button
+          class="btn btn-primary"
+          (click)="editCompetency()"
+          aria-label="ویرایش شایستگی">
+          <i class="icon-edit"></i>
+          ویرایش
+        </button>
+
+        <button
+          class="btn btn-danger"
+          (click)="deleteCompetency()"
+          aria-label="حذف شایستگی">
+          <i class="icon-delete"></i>
+          حذف
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Info Card -->
+    <div class="info-card main-info">
+      <div class="card-header">
+        <div class="icon-wrapper" [style.background-color]="competency.color || '#6366f1'">
+          <i [class]="competency.icon || 'icon-default'"></i>
+        </div>
+        <div class="title-section">
+          <h1>{{ competency.nameFa }}</h1>
+          <p class="name-en" *ngIf="competency.nameEn">{{ competency.nameEn }}</p>
+          <span class="status-badge" [class.active]="competency.isActive">
+            {{ competency.isActive ? 'فعال' : 'غیرفعال' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row" *ngIf="competency.description">
+          <label>توضیحات:</label>
+          <p>{{ competency.description }}</p>
+        </div>
+
+        <div class="info-row" *ngIf="competency.displayOrder !== undefined">
+          <label>ترتیب نمایش:</label>
+          <p>{{ competency.displayOrder }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Media Types Card -->
+    <div class="info-card" *ngIf="competency.mediaTypes && competency.mediaTypes.length > 0">
+      <div class="card-title">
+        <i class="icon-media"></i>
+        <h2>انواع رسانه پشتیبانی شده</h2>
+      </div>
+      <div class="card-body">
+        <div class="media-grid">
+          <div 
+            *ngFor="let media of competency.mediaTypes" 
+            class="media-item">
+            <i [class]="getMediaIcon(media)"></i>
+            <span>{{ getMediaLabel(media) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metadata Card -->
+    <div class="info-card metadata">
+      <div class="card-title">
+        <i class="icon-info"></i>
+        <h2>اطلاعات تکمیلی</h2>
+      </div>
+      <div class="card-body">
+        <div class="metadata-grid">
+          <div class="metadata-item">
+            <label>شناسه:</label>
+            <span class="code">{{ competency.id }}</span>
+          </div>
+
+          <div class="metadata-item" *ngIf="competency.createdAt">
+            <label>تاریخ ایجاد:</label>
+            <span>{{ competency.createdAt | date:'yyyy/MM/dd HH:mm' }}</span>
+          </div>
+
+          <div class="metadata-item" *ngIf="competency.updatedAt">
+            <label>آخرین بروزرسانی:</label>
+            <span>{{ competency.updatedAt | date:'yyyy/MM/dd HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Content Section -->
+    <div class="related-section">
+      <button 
+        class="btn btn-outline"
+        (click)="viewRelatedContent()">
+        <i class="icon-content"></i>
+        مشاهده محتواهای مرتبط
+      </button>
+    </div>
+  </div>
+
+  <!-- Not Found -->
+  <div class="not-found" *ngIf="!loading && !competency && !error">
+    <i class="icon-not-found"></i>
+    <h2>شایستگی یافت نشد</h2>
+    <p>شایستگی مورد نظر وجود ندارد یا حذف شده است.</p>
+    <button class="btn btn-primary" (click)="goBack()">
+      بازگشت به لیست
+    </button>
+  </div>
+</div>

@@ -1,0 +1,71 @@
+<div class="quiz-container" *ngIf="!loading">
+  <!-- No Quiz -->
+  <div *ngIf="!quiz" class="alert alert-info">
+    No quiz available for this content.
+  </div>
+
+  <!-- Quiz -->
+  <div *ngIf="quiz && !result">
+    <div class="quiz-header">
+      <h4>{{ quiz.title }}</h4>
+      <div *ngIf="quiz.timeLimit" class="timer">
+        <i class="fas fa-clock"></i>
+        Time Left: {{ formatTime(timeLeft) }}
+      </div>
+      <div class="passing-score">
+        Passing Score: {{ quiz.passingScore }}%
+      </div>
+    </div>
+
+    <form [formGroup]="quizForm" (ngSubmit)="submitQuiz()">
+      <div *ngFor="let question of quiz.questions; let i = index" class="question-item">
+        <h5>{{ i + 1 }}. {{ question.question }}</h5>
+        <div class="options">
+          <div *ngFor="let option of question.options; let j = index" class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              [formControlName]="'q' + i"
+              [value]="j"
+              [id]="'q' + i + '_' + j"
+            />
+            <label class="form-check-label" [for]="'q' + i + '_' + j">
+              {{ option }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="quizForm.invalid || submitted"
+      >
+        Submit Quiz
+      </button>
+    </form>
+  </div>
+
+  <!-- Result -->
+  <div *ngIf="result" class="quiz-result">
+    <div class="result-card" [class.passed]="result.isPassed" [class.failed]="!result.isPassed">
+      <div class="result-icon">
+        <i class="fas" [class.fa-check-circle]="result.isPassed" [class.fa-times-circle]="!result.isPassed"></i>
+      </div>
+      <h3>{{ result.isPassed ? 'Passed!' : 'Failed' }}</h3>
+      <div class="score">
+        Your Score: {{ result.score }}%
+      </div>
+      <div class="details">
+        <p>Correct Answers: {{ result.correctCount }} / {{ result.totalQuestions }}</p>
+        <p>Passing Score: {{ result.passingScore }}%</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+</div>

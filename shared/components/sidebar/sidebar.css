@@ -1,0 +1,42 @@
+.app-sidebar {
+  width: 240px;
+  background: #1e293b;
+  height: 100vh;
+  position: fixed;
+  right: 0;
+  top: 0;
+  padding-top: 70px;
+  overflow-y: auto;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all 0.2s;
+  font-size: 15px;
+}
+
+.nav-item:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.nav-item.active {
+  background: #4f46e5;
+  color: #ffffff;
+  border-right: 4px solid #818cf8;
+}
+
+.icon {
+  font-size: 20px;
+}

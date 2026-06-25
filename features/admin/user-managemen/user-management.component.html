@@ -1,0 +1,208 @@
+<div class="user-management-container">
+  <div class="header">
+    <h2>مدیریت کاربران</h2>
+    <button class="btn btn-primary" (click)="openAddModal()">
+      <i class="icon-plus"></i> افزودن کاربر جدید
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="جستجو بر اساس نام یا ایمیل..."
+        class="search-input"
+        (keyup.enter)="applyFilters()"
+      />
+    </div>
+
+    <div class="filter-group">
+      <label>نقش:</label>
+      <select [(ngModel)]="roleFilter" (change)="applyFilters()">
+        <option value="all">همه نقش‌ها</option>
+        <option value="admin">ادمین فنی</option>
+        <option value="hr_admin">ادمین آموزش و توسعه</option>
+        <option value="manager">مدیر سازمان</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>وضعیت:</label>
+      <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+        <option value="all">همه</option>
+        <option value="active">فعال</option>
+        <option value="inactive">غیرفعال</option>
+      </select>
+    </div>
+
+    <button class="btn btn-secondary" (click)="resetFilters()">پاک کردن فیلترها</button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+    <button (click)="error = null" class="close-btn">&times;</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری...</p>
+  </div>
+
+  <!-- Users Table -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>شناسه</th>
+          <th>نام کامل</th>
+          <th>ایمیل</th>
+          <th>نقش</th>
+          <th>وضعیت</th>
+          <th>تاریخ ثبت‌نام</th>
+          <th>آخرین ورود</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>{{ user.id }}</td>
+          <td>{{ user.full_name }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge badge-role" [attr.data-role]="user.role">
+              {{ getRoleLabel(user.role) }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [class.badge-success]="user.is_active" [class.badge-danger]="!user.is_active">
+              {{ user.is_active ? 'فعال' : 'غیرفعال' }}
+            </span>
+          </td>
+          <td>{{ formatDate(user.created_at) }}</td>
+          <td>{{ formatDate(user.last_login || '') }}</td>
+          <td class="actions">
+            <button class="btn-icon btn-edit" (click)="openEditModal(user)" title="ویرایش">
+              <i class="icon-edit"></i>
+            </button>
+            <button 
+              class="btn-icon" 
+              [class.btn-success]="!user.is_active"
+              [class.btn-warning]="user.is_active"
+              (click)="toggleUserStatus(user)" 
+              [title]="user.is_active ? 'غیرفعال کردن' : 'فعال کردن'"
+            >
+              <i [class.icon-check]="!user.is_active" [class.icon-ban]="user.is_active"></i>
+            </button>
+            <button class="btn-icon btn-delete" (click)="deleteUser(user)" title="حذف">
+              <i class="icon-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredUsers.length === 0">
+          <td colspan="8" class="no-data">هیچ کاربری یافت نشد</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="totalPages > 1" class="pagination">
+    <button 
+      class="btn btn-sm" 
+      [disabled]="currentPage === 1" 
+      (click)="changePage(currentPage - 1)"
+    >
+      قبلی
+    </button>
+    
+    <span class="page-info">
+      صفحه {{ currentPage }} از {{ totalPages }} (مجموع: {{ totalUsers }} کاربر)
+    </span>
+    
+    <button 
+      class="btn btn-sm" 
+      [disabled]="currentPage === totalPages" 
+      (click)="changePage(currentPage + 1)"
+    >
+      بعدی
+    </button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ modalMode === 'add' ? 'افزودن کاربر جدید' : 'ویرایش کاربر' }}</h3>
+        <button class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+
+      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+        <div class="form-group">
+          <label for="full_name">نام کامل *</label>
+          <input 
+            type="text" 
+            id="full_name" 
+            formControlName="full_name"
+            [class.invalid]="userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched"
+          />
+          <span class="error-message" *ngIf="userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched">
+            نام کامل باید حداقل ۳ کاراکتر باشد
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">ایمیل *</label>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email"
+            [class.invalid]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
+          />
+          <span class="error-message" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+            ایمیل معتبر وارد کنید
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="password">رمز عبور {{ modalMode === 'edit' ? '(در صورت تمایل به تغییر)' : '*' }}</label>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password"
+            [class.invalid]="userForm.get('password')?.invalid && userForm.get('password')?.touched"
+          />
+          <span class="error-message" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+            رمز عبور باید حداقل ۸ کاراکتر باشد
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="role">نقش *</label>
+          <select id="role" formControlName="role">
+            <option *ngFor="let role of roles" [value]="role.value">
+              {{ role.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" formControlName="is_active" />
+            کاربر فعال است
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">انصراف</button>
+          <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid || loading">
+            {{ modalMode === 'add' ? 'افزودن' : 'ذخیره تغییرات' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

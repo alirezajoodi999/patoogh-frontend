@@ -1,0 +1,22 @@
+<header class="app-header">
+  <div class="header-content">
+    <div class="logo" (click)="navigateHome()">
+      <h2>پاتوق</h2>
+    </div>
+    <nav class="header-nav">
+      <button class="notification-btn" (click)="navigateToNotifications()">
+        <span class="badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+        🔔
+      </button>
+      <div class="user-menu" (click)="toggleUserMenu()">
+        <img src="assets/avatar.png" alt="User" class="avatar">
+        <span>{{ userName }}</span>
+        <div class="dropdown-menu" *ngIf="showUserMenu">
+          <button (click)="navigateToProfile()">پروفایل</button>
+          <button (click)="navigateToSettings()">تنظیمات</button>
+          <button (click)="logout()">خروج</button>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>

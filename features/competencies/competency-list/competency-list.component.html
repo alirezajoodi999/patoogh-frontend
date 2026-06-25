@@ -1,0 +1,143 @@
+<!-- src/app/components/competency-list/competency-list.component.html -->
+<div class="competency-list-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>شایستگی‌ها</h1>
+    <button 
+      *ngIf="isAdmin" 
+      class="btn btn-primary"
+      (click)="createNew()"
+      aria-label="افزودن شایستگی جدید">
+      <i class="icon-plus"></i>
+      افزودن شایستگی
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="search-box">
+      <i class="icon-search"></i>
+      <input
+        type="text"
+        placeholder="جستجو در شایستگی‌ها..."
+        [value]="searchQuery"
+        (input)="onSearchChange($any($event.target).value)"
+        aria-label="جستجو در شایستگی‌ها">
+    </div>
+
+    <div class="filter-options">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [checked]="showActiveOnly"
+          (change)="onActiveFilterChange()">
+        <span>فقط فعال‌ها</span>
+      </label>
+
+      <button 
+        class="btn btn-text"
+        (click)="resetFilters()"
+        *ngIf="searchQuery || showActiveOnly">
+        بازنشانی فیلترها
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="error" role="alert">
+    <i class="icon-error"></i>
+    <span>{{ error }}</span>
+    <button (click)="error = null" aria-label="بستن پیام خطا">×</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && filteredCompetencies.length === 0">
+    <i class="icon-empty"></i>
+    <h3>شایستگی‌ای یافت نشد</h3>
+    <p *ngIf="searchQuery || showActiveOnly">
+      لطفاً فیلترهای خود را تغییر دهید یا جستجوی دیگری انجام دهید.
+    </p>
+    <p *ngIf="!searchQuery && !showActiveOnly && isAdmin">
+      برای شروع، اولین شایستگی را ایجاد کنید.
+    </p>
+  </div>
+
+  <!-- Competency Grid -->
+  <div class="competency-grid" *ngIf="!loading && filteredCompetencies.length > 0">
+    <div
+      *ngFor="let competency of filteredCompetencies"
+      class="competency-card"
+      [class.inactive]="!competency.isActive"
+      (click)="viewDetails(competency.id)"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="'مشاهده جزئیات ' + competency.nameFa">
+      
+      <!-- Icon & Color -->
+      <div class="card-icon" [style.background-color]="competency.color || '#6366f1'">
+        <i [class]="competency.icon || 'icon-default'"></i>
+      </div>
+
+      <!-- Content -->
+      <div class="card-content">
+        <h3>{{ competency.nameFa }}</h3>
+        <p class="name-en" *ngIf="competency.nameEn">{{ competency.nameEn }}</p>
+        <p class="description" *ngIf="competency.description">
+          {{ competency.description }}
+        </p>
+
+        <!-- Media Types -->
+        <div class="media-types" *ngIf="competency.mediaTypes && competency.mediaTypes.length > 0">
+          <span 
+            *ngFor="let media of competency.mediaTypes" 
+            class="media-badge">
+            {{ media }}
+          </span>
+        </div>
+
+        <!-- Status Badge -->
+        <span class="status-badge" [class.active]="competency.isActive">
+          {{ competency.isActive ? 'فعال' : 'غیرفعال' }}
+        </span>
+      </div>
+
+      <!-- Admin Actions -->
+      <div class="card-actions" *ngIf="isAdmin">
+        <button
+          class="btn-icon"
+          (click)="toggleActive($event, competency)"
+          [attr.aria-label]="competency.isActive ? 'غیرفعال کردن' : 'فعال کردن'"
+          [title]="competency.isActive ? 'غیرفعال کردن' : 'فعال کردن'">
+          <i [class]="competency.isActive ? 'icon-toggle-on' : 'icon-toggle-off'"></i>
+        </button>
+
+        <button
+          class="btn-icon"
+          (click)="editCompetency(competency.id, $event)"
+          aria-label="ویرایش"
+          title="ویرایش">
+          <i class="icon-edit"></i>
+        </button>
+
+        <button
+          class="btn-icon btn-danger"
+          (click)="deleteCompetency(competency, $event)"
+          aria-label="حذف"
+          title="حذف">
+          <i class="icon-delete"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Count -->
+  <div class="results-info" *ngIf="!loading && filteredCompetencies.length > 0">
+    نمایش {{ filteredCompetencies.length }} از {{ competencies.length }} شایستگی
+  </div>
+</div>

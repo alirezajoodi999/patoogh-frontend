@@ -1,0 +1,177 @@
+<!-- src/app/features/admin/competencies/competency-form/competency-form.component.html -->
+
+<div class="competency-form-container">
+  <div class="form-header">
+    <h2>{{ formTitle }}</h2>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری...</p>
+  </div>
+
+  <!-- Form -->
+  <form *ngIf="!loading" [formGroup]="competencyForm" (ngSubmit)="onSubmit()" class="competency-form">
+    
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="alert alert-success">
+      <i class="icon-check"></i>
+      {{ successMessage }}
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="alert alert-error">
+      <i class="icon-alert"></i>
+      {{ error }}
+    </div>
+
+    <!-- Name (Farsi) - Required -->
+    <div class="form-group">
+      <label for="nameFa" class="required">نام فارسی</label>
+      <input
+        type="text"
+        id="nameFa"
+        formControlName="nameFa"
+        class="form-control"
+        [class.error]="isFieldInvalid('nameFa')"
+        placeholder="مثال: مهارت‌های ارتباطی"
+      />
+      <span *ngIf="isFieldInvalid('nameFa')" class="error-message">
+        {{ getErrorMessage('nameFa') }}
+      </span>
+    </div>
+
+    <!-- Name (English) - Optional -->
+    <div class="form-group">
+      <label for="nameEn">نام انگلیسی</label>
+      <input
+        type="text"
+        id="nameEn"
+        formControlName="nameEn"
+        class="form-control"
+        [class.error]="isFieldInvalid('nameEn')"
+        placeholder="Example: Communication Skills"
+      />
+      <span *ngIf="isFieldInvalid('nameEn')" class="error-message">
+        {{ getErrorMessage('nameEn') }}
+      </span>
+    </div>
+
+    <!-- Description - Optional -->
+    <div class="form-group">
+      <label for="description">توضیحات</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        class="form-control"
+        rows="4"
+        [class.error]="isFieldInvalid('description')"
+        placeholder="توضیحات مربوط به این شایستگی را وارد کنید..."
+      ></textarea>
+      <span *ngIf="isFieldInvalid('description')" class="error-message">
+        {{ getErrorMessage('description') }}
+      </span>
+    </div>
+
+    <!-- Icon & Color Row -->
+    <div class="form-row">
+      <!-- Icon -->
+      <div class="form-group">
+        <label for="icon">آیکون</label>
+        <input
+          type="text"
+          id="icon"
+          formControlName="icon"
+          class="form-control"
+          [class.error]="isFieldInvalid('icon')"
+          placeholder="مثال: star, book, chart"
+        />
+        <small class="form-hint">نام آیکون از مجموعه آیکون‌های پروژه</small>
+        <span *ngIf="isFieldInvalid('icon')" class="error-message">
+          {{ getErrorMessage('icon') }}
+        </span>
+      </div>
+
+      <!-- Color -->
+      <div class="form-group">
+        <label for="color">رنگ</label>
+        <div class="color-input-wrapper">
+          <input
+            type="color"
+            id="colorPicker"
+            formControlName="color"
+            class="form-control-color"
+          />
+          <input
+            type="text"
+            id="color"
+            formControlName="color"
+            class="form-control color-text"
+            [class.error]="isFieldInvalid('color')"
+            placeholder="#3B82F6"
+          />
+        </div>
+        <span *ngIf="isFieldInvalid('color')" class="error-message">
+          {{ getErrorMessage('color') }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Display Order & Active Status Row -->
+    <div class="form-row">
+      <!-- Display Order -->
+      <div class="form-group">
+        <label for="displayOrder">ترتیب نمایش</label>
+        <input
+          type="number"
+          id="displayOrder"
+          formControlName="displayOrder"
+          class="form-control"
+          min="0"
+          [class.error]="isFieldInvalid('displayOrder')"
+          placeholder="0"
+        />
+        <span *ngIf="isFieldInvalid('displayOrder')" class="error-message">
+          {{ getErrorMessage('displayOrder') }}
+        </span>
+      </div>
+
+      <!-- Is Active (only in edit mode) -->
+      <div *ngIf="isEditMode" class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="isActive"
+            class="form-checkbox"
+          />
+          <span>فعال</span>
+        </label>
+        <small class="form-hint">شایستگی‌های غیرفعال در لیست عمومی نمایش داده نمی‌شوند</small>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="onCancel()"
+        [disabled]="loading"
+      >
+        انصراف
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="loading || competencyForm.invalid"
+      >
+        <span *ngIf="!loading">{{ submitButtonText }}</span>
+        <span *ngIf="loading" class="btn-loading">
+          <span class="spinner-small"></span>
+          در حال ذخیره...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,80 @@
+.comments-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+.comments-section .add-comment {
+  margin-bottom: 2rem;
+}
+.comments-section .comment-item {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.comments-section .comment-item .comment-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.comments-section .comment-item .comment-header .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+.comments-section .comment-item .comment-header .avatar.small {
+  width: 30px;
+  height: 30px;
+}
+.comments-section .comment-item .comment-header .comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.comments-section .comment-item .comment-header .comment-meta .date {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+.comments-section .comment-item .comment-header .comment-meta .edited {
+  color: #6c757d;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+.comments-section .comment-item .comment-body {
+  margin-left: 50px;
+  margin-bottom: 0.5rem;
+}
+.comments-section .comment-item .comment-actions {
+  margin-left: 50px;
+  display: flex;
+  gap: 10px;
+}
+.comments-section .comment-item .comment-actions .fa-heart {
+  color: #ccc;
+}
+.comments-section .comment-item .comment-actions .fa-heart.liked {
+  color: #dc3545;
+}
+.comments-section .comment-item .reply-form {
+  margin-top: 1rem;
+  margin-left: 50px;
+  padding: 1rem;
+  background: #f1f3f5;
+  border-radius: 8px;
+}
+.comments-section .comment-item .replies {
+  margin-top: 1rem;
+  margin-left: 50px;
+  padding-left: 1rem;
+  border-left: 2px solid #dee2e6;
+}
+.comments-section .comment-item .replies .reply-item {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}

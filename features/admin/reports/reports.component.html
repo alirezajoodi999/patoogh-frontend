@@ -1,0 +1,197 @@
+<!-- features/admin/reports/reports.component.html -->
+
+<div class="reports-container">
+  <!-- Header -->
+  <div class="header">
+    <h2>گزارش‌ها و آمار سیستم</h2>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="refreshReports()" [disabled]="loading">
+        <span class="icon">🔄</span>
+        بروزرسانی
+      </button>
+      <button class="btn-export" (click)="exportReport('pdf')" [disabled]="loading">
+        <span class="icon">📄</span>
+        خروجی PDF
+      </button>
+      <button class="btn-export" (click)="exportReport('excel')" [disabled]="loading">
+        <span class="icon">📊</span>
+        خروجی Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
+    <button class="close-btn" (click)="closeError()">&times;</button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری گزارش‌ها...</p>
+  </div>
+
+  <!-- Date Range Filter -->
+  <div class="date-filter-section" *ngIf="!loading">
+    <div class="filter-group">
+      <label>از تاریخ:</label>
+      <input 
+        type="date" 
+        [(ngModel)]="dateFrom" 
+        (change)="onDateRangeChange()"
+        class="date-input"
+      />
+    </div>
+    <div class="filter-group">
+      <label>تا تاریخ:</label>
+      <input 
+        type="date" 
+        [(ngModel)]="dateTo" 
+        (change)="onDateRangeChange()"
+        class="date-input"
+      />
+    </div>
+  </div>
+
+  <!-- System Statistics Cards -->
+  <div class="stats-grid" *ngIf="!loading">
+    <div class="stat-card card-blue">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <h3>کل کاربران</h3>
+        <p class="stat-number">{{ systemStats.totalUsers }}</p>
+        <span class="stat-subtitle">{{ systemStats.activeUsers }} کاربر فعال</span>
+      </div>
+    </div>
+
+    <div class="stat-card card-green">
+      <div class="stat-icon">📚</div>
+      <div class="stat-content">
+        <h3>کل محتوا</h3>
+        <p class="stat-number">{{ systemStats.totalContent }}</p>
+        <span class="stat-subtitle">{{ systemStats.pendingContent }} در انتظار تایید</span>
+      </div>
+    </div>
+
+    <div class="stat-card card-purple">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-content">
+        <h3>شایستگی‌ها</h3>
+        <p class="stat-number">{{ systemStats.totalCompetencies }}</p>
+        <span class="stat-subtitle">تعریف شده</span>
+      </div>
+    </div>
+
+    <div class="stat-card card-orange">
+      <div class="stat-icon">⭐</div>
+      <div class="stat-content">
+        <h3>ارزیابی‌ها</h3>
+        <p class="stat-number">{{ systemStats.totalEvaluations }}</p>
+        <span class="stat-subtitle">ثبت شده</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Activity Chart -->
+  <div class="chart-section" *ngIf="!loading && userActivity.length > 0">
+    <div class="section-header">
+      <h3>فعالیت کاربران ({{ userActivity.length }} روز اخیر)</h3>
+    </div>
+    <div class="chart-container">
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-color active-users"></span>
+          <span>کاربران فعال</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color new-users"></span>
+          <span>کاربران جدید</span>
+        </div>
+      </div>
+      <div class="bar-chart">
+        <div class="chart-bars">
+          <div *ngFor="let day of userActivity" class="bar-group">
+            <div class="bar-container">
+              <div 
+                class="bar bar-active" 
+                [style.height.%]="(day.activeUsers / getMaxActivity()) * 100"
+                [title]="'کاربران فعال: ' + day.activeUsers"
+              ></div>
+              <div 
+                class="bar bar-new" 
+                [style.height.%]="(day.newUsers / getMaxActivity()) * 100"
+                [title]="'کاربران جدید: ' + day.newUsers"
+              ></div>
+            </div>
+            <div class="bar-label">{{ formatChartDate(day.date) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Statistics by Type -->
+  <div class="content-stats-section" *ngIf="!loading && contentByType.length > 0">
+    <div class="section-header">
+      <h3>آمار محتوا بر اساس نوع رسانه</h3>
+    </div>
+    <div class="content-stats-grid">
+      <div *ngFor="let item of contentByType" class="content-stat-card">
+        <div class="content-stat-header">
+          <h4>{{ item.mediaType }}</h4>
+          <span class="content-count">{{ item.count }}</span>
+        </div>
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            [style.width.%]="item.percentage"
+          ></div>
+        </div>
+        <div class="content-percentage">{{ item.percentage.toFixed(1) }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Competency Progress -->
+  <div class="competency-progress-section" *ngIf="!loading && competencyProgress.length > 0">
+    <div class="section-header">
+      <h3>پیشرفت شایستگی‌ها</h3>
+    </div>
+    <div class="competency-table-container">
+      <table class="competency-table">
+        <thead>
+          <tr>
+            <th>نام شایستگی</th>
+            <th>تعداد کاربران</th>
+            <th>میانگین پیشرفت</th>
+            <th>نمودار پیشرفت</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let comp of competencyProgress">
+            <td class="competency-name">{{ comp.competencyName }}</td>
+            <td class="users-count">{{ comp.usersCount }} نفر</td>
+            <td class="progress-value">{{ comp.averageProgress.toFixed(1) }}%</td>
+            <td class="progress-cell">
+              <div class="progress-bar-horizontal">
+                <div 
+                  class="progress-fill-horizontal" 
+                  [style.width.%]="comp.averageProgress"
+                  [class.low]="comp.averageProgress < 30"
+                  [class.medium]="comp.averageProgress >= 30 && comp.averageProgress < 70"
+                  [class.high]="comp.averageProgress >= 70"
+                ></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- No Data Message -->
+  <div *ngIf="!loading && userActivity.length === 0 && contentByType.length === 0" class="no-data">
+    <p>هیچ داده‌ای برای نمایش وجود ندارد</p>
+  </div>
+</div>

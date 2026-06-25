@@ -1,0 +1,140 @@
+<div class="comments-section">
+  <h4>{{ totalComments }} Comments</h4>
+
+  <!-- Add Comment -->
+  <div class="add-comment">
+    <form [formGroup]="commentForm" (ngSubmit)="submitComment()">
+      <div class="form-group">
+        <textarea
+          formControlName="text"
+          class="form-control"
+          placeholder="Write a comment..."
+          rows="3"
+        ></textarea>
+        <div class="text-danger" *ngIf="commentForm.get('text')?.invalid && commentForm.get('text')?.touched">
+          Comment is required (max 2000 characters)
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="commentForm.invalid">
+        Post Comment
+      </button>
+    </form>
+  </div>
+
+  <!-- Comments List -->
+  <div class="comments-list" *ngIf="!loading">
+    <div *ngFor="let comment of comments" class="comment-item">
+      <div class="comment-header">
+        <img
+          [src]="comment.userId.profileImage || 'assets/default-avatar.png'"
+          alt="Avatar"
+          class="avatar"
+        />
+        <div class="comment-meta">
+          <strong>{{ comment.userId.fullName }}</strong>
+          <span class="date">{{ comment.createdAt | date:'medium' }}</span>
+          <span *ngIf="comment.isEdited" class="edited">(edited)</span>
+        </div>
+      </div>
+
+      <div class="comment-body">
+        <p>{{ comment.text }}</p>
+      </div>
+
+      <div class="comment-actions">
+        <button class="btn btn-sm btn-outline-primary" (click)="toggleReply(comment._id)">
+          Reply
+        </button>
+        <button class="btn btn-sm btn-outline-danger" (click)="likeComment(comment._id)">
+          <i class="fas fa-heart" [class.liked]="isLiked(comment)"></i>
+          {{ comment.likes.length }}
+        </button>
+        <button
+          *ngIf="canDelete(comment)"
+          class="btn btn-sm btn-outline-danger"
+          (click)="deleteComment(comment._id)"
+        >
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+
+      <!-- Reply Form -->
+      <div class="reply-form" *ngIf="replyVisible[comment._id]">
+        <form [formGroup]="replyForms[comment._id]" (ngSubmit)="submitReply(comment._id)">
+          <div class="form-group">
+            <textarea
+              formControlName="text"
+              class="form-control"
+              placeholder="Write a reply..."
+              rows="2"
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary" [disabled]="replyForms[comment._id].invalid">
+            Reply
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="replyVisible[comment._id] = false">
+            Cancel
+          </button>
+        </form>
+      </div>
+
+      <!-- Replies -->
+      <div class="replies" *ngIf="comment.replies && comment.replies.length > 0">
+        <div *ngFor="let reply of comment.replies" class="reply-item">
+          <div class="comment-header">
+            <img
+              [src]="reply.userId.profileImage || 'assets/default-avatar.png'"
+              alt="Avatar"
+              class="avatar small"
+            />
+            <div class="comment-meta">
+              <strong>{{ reply.userId.fullName }}</strong>
+              <span class="date">{{ reply.createdAt | date:'medium' }}</span>
+            </div>
+          </div>
+          <div class="comment-body">
+            <p>{{ reply.text }}</p>
+          </div>
+          <div class="comment-actions">
+            <button class="btn btn-sm btn-outline-danger" (click)="likeComment(reply._id)">
+              <i class="fas fa-heart" [class.liked]="isLiked(reply)"></i>
+              {{ reply.likes.length }}
+            </button>
+            <button
+              *ngIf="canDelete(reply)"
+              class="btn btn-sm btn-outline-danger"
+              (click)="deleteComment(reply._id)"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button
+        class="btn btn-sm btn-outline-primary"
+        (click)="page = page - 1; loadComments()"
+        [disabled]="page === 1"
+      >
+        Previous
+      </button>
+      <span>Page {{ page }} of {{ totalPages }}</span>
+      <button
+        class="btn btn-sm btn-outline-primary"
+        (click)="page = page + 1; loadComments()"
+        [disabled]="page === totalPages"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+</div>
